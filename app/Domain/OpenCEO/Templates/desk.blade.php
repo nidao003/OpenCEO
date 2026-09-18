@@ -17,6 +17,7 @@
                     <h4 class="widgettitle">{!! __('openceo.company_profile') !!}</h4>
                     <div class="widgetcontent">
                         <form method="post" action="{{ BASE_URL }}/openceo/desk">
+                            @csrf
                             <input type="hidden" name="action" value="save_profile">
                             <label>{!! __('openceo.company_name') !!}</label>
                             <input class="span12" name="name" value="{{ $profile['name'] ?? '' }}">
@@ -39,6 +40,7 @@
                     <h4 class="widgettitle">{!! __('openceo.add_company_memory') !!}</h4>
                     <div class="widgetcontent">
                         <form method="post" action="{{ BASE_URL }}/openceo/desk">
+                            @csrf
                             <input type="hidden" name="action" value="add_memory">
                             <input class="span12" name="title" placeholder="{{ __('openceo.memory_title_placeholder') }}">
                             <select name="memory_type" class="span12">
@@ -90,6 +92,7 @@
                     <div class="widgetcontent">
                         @forelse($candidates as $candidate)
                             <form method="post" action="{{ BASE_URL }}/openceo/desk" style="border-bottom:1px solid #eee;padding:10px 0;">
+                                @csrf
                                 <input type="hidden" name="action" value="resolve_candidate">
                                 <input type="hidden" name="candidate_id" value="{{ $candidate['id'] }}">
                                 <strong>{{ $candidate['name'] }}</strong>
@@ -121,6 +124,7 @@
                     <div class="widgetcontent">
                         @forelse($pendingIdentities as $identity)
                             <form method="post" action="{{ BASE_URL }}/openceo/desk" style="border-bottom:1px solid #eee;padding:10px 0;">
+                                @csrf
                                 <input type="hidden" name="action" value="bind_identity">
                                 <input type="hidden" name="identity_id" value="{{ $identity['id'] }}">
                                 <strong>{{ $identity['display_name'] ?: $identity['external_user_id'] }}</strong>
@@ -143,6 +147,7 @@
                     <h4 class="widgettitle">{!! __('openceo.management_outputs') !!}</h4>
                     <div class="widgetcontent">
                         <form method="post" action="{{ BASE_URL }}/openceo/desk" style="margin-bottom:12px;">
+                            @csrf
                             <input type="hidden" name="action" value="generate_output">
                             <button class="btn btn-primary" name="output_type" value="weekly_summary" type="submit">{!! __('openceo.generate_weekly') !!}</button>
                             <button class="btn" name="output_type" value="monthly_summary" type="submit">{!! __('openceo.generate_monthly') !!}</button>
@@ -163,12 +168,14 @@
 
                         @if(!empty($monthlyOutput['id']))
                             <form method="post" action="{{ BASE_URL }}/openceo/desk" style="margin-top:10px;">
+                                @csrf
                                 <input type="hidden" name="action" value="supplement_monthly">
                                 <input type="hidden" name="output_id" value="{{ $monthlyOutput['id'] }}">
                                 <textarea class="span12" rows="3" name="supplement" placeholder="{{ __('openceo.human_supplement_placeholder') }}"></textarea>
                                 <button class="btn" type="submit">{!! __('openceo.save_supplement') !!}</button>
                             </form>
                             <form method="post" action="{{ BASE_URL }}/openceo/desk" style="margin-top:6px;">
+                                @csrf
                                 <input type="hidden" name="action" value="finalize_monthly">
                                 <input type="hidden" name="output_id" value="{{ $monthlyOutput['id'] }}">
                                 <button class="btn btn-success" type="submit">{!! __('openceo.confirm_final') !!}</button>

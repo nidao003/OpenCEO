@@ -29,6 +29,11 @@ jobs:
           find app/Domain/OpenCEO app/Command -type f -name '*.php' -print0 \
             | xargs -0 -n1 php -l
 
+      - name: Validate OpenCEO CSRF protection
+        run: |
+          grep -q "VerifyCsrfToken::class" app/Domain/OpenCEO/routes.php
+          test "$(grep -c '@csrf' app/Domain/OpenCEO/Templates/desk.blade.php)" -ge 7
+
       - name: Validate Simplified Chinese coverage
         run: |
           php -r '
