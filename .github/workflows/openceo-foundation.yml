@@ -6,6 +6,7 @@ on:
       - 'app/Domain/OpenCEO/**'
       - 'app/Command/OpenCEO*.php'
       - 'services/openceo-agent/**'
+      - 'custom/Language/**'
       - '.docker/Dockerfile.openceo'
       - '.docker/docker-compose.openceo.yml'
       - '.github/workflows/openceo-foundation.yml'
@@ -15,16 +16,42 @@ on:
       - 'app/Domain/OpenCEO/**'
       - 'app/Command/OpenCEO*.php'
       - 'services/openceo-agent/**'
+      - 'custom/Language/**'
 
 jobs:
   php-lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Lint OpenCEO PHP
         run: |
           find app/Domain/OpenCEO app/Command -type f -name '*.php' -print0 \
             | xargs -0 -n1 php -l
+
+      - name: Validate Simplified Chinese coverage
+        run: |
+          php -r '
+            $en = parse_ini_file("app/Language/en-US.ini", false, INI_SCANNER_RAW);
+            $zh = parse_ini_file("app/Language/zh-CN.ini", false, INI_SCANNER_RAW);
+            $zhCompat = parse_ini_file("custom/Language/zh-CN.ini", false, INI_SCANNER_RAW);
+            $openEn = parse_ini_file("custom/Language/en-US.ini", false, INI_SCANNER_RAW);
+            if ($en === false || $zh === false || $zhCompat === false || $openEn === false) {
+              fwrite(STDERR, "Unable to parse one or more language files\n");
+              exit(1);
+            }
+            $mergedZh = array_merge($zh, $zhCompat);
+            $missingCore = array_diff_key($en, $mergedZh);
+            $missingOpenCEO = array_diff_key($openEn, $mergedZh);
+            if ($missingCore || $missingOpenCEO) {
+              fwrite(STDERR, "Missing zh-CN keys:\n");
+              foreach (array_keys($missingCore + $missingOpenCEO) as $key) {
+                fwrite(STDERR, " - ".$key."\n");
+              }
+              exit(1);
+            }
+            echo "Simplified Chinese key coverage: OK\n";
+          '
 
   python-tests:
     runs-on: ubuntu-latest
@@ -33,9 +60,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+
       - name: Install OpenCEO agent
         working-directory: services/openceo-agent
         run: pip install -e '.[test]'
+
       - name: Run tests
         working-directory: services/openceo-agent
         run: pytest -q

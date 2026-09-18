@@ -3,6 +3,7 @@
 namespace Leantime\Domain\OpenCEO\Services;
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema as DbSchema;
 
 class Schema
@@ -16,18 +17,63 @@ class Schema
             if (DbSchema::hasTable($table)) {
                 continue;
             }
+
             DbSchema::create($table, $definition);
             $created[] = $table;
         }
+
+        $this->upgradeExistingTables();
 
         return $created;
     }
 
     public function status(): array
     {
-        return collect(array_keys($this->definitions()))
+        $status = collect(array_keys($this->definitions()))
             ->mapWithKeys(fn (string $table) => [$table => DbSchema::hasTable($table)])
             ->all();
+
+        if (DbSchema::hasTable('openceo_observation_corrections')) {
+            $status['openceo_observation_corrections.project_id'] =
+                DbSchema::hasColumn('openceo_observation_corrections', 'project_id');
+        }
+
+        return $status;
+    }
+
+    private function upgradeExistingTables(): void
+    {
+        if (
+            DbSchema::hasTable('openceo_observation_corrections')
+            && ! DbSchema::hasColumn('openceo_observation_corrections', 'project_id')
+        ) {
+            DbSchema::table('openceo_observation_corrections', function (Blueprint $table): void {
+                $table->unsignedBigInteger('project_id')->nullable();
+                $table->index(['project_id', 'field_name'], 'openceo_correction_project_field');
+            });
+        }
+
+        if (
+            DbSchema::hasTable('openceo_observation_corrections')
+            && DbSchema::hasColumn('openceo_observation_corrections', 'project_id')
+            && DbSchema::hasTable('openceo_project_observations')
+        ) {
+            $rows = DB::table('openceo_observation_corrections')
+                ->whereNull('project_id')
+                ->get(['id', 'observation_id']);
+
+            foreach ($rows as $row) {
+                $projectId = DB::table('openceo_project_observations')
+                    ->where('id', $row->observation_id)
+                    ->value('project_id');
+
+                if ($projectId) {
+                    DB::table('openceo_observation_corrections')
+                        ->where('id', $row->id)
+                        ->update(['project_id' => (int) $projectId]);
+                }
+            }
+        }
     }
 
     /** @return array<string, callable(Blueprint): void> */
@@ -161,6 +207,7 @@ class Schema
             'openceo_observation_corrections' => function (Blueprint $table): void {
                 $table->id();
                 $table->unsignedBigInteger('observation_id');
+                $table->unsignedBigInteger('project_id')->nullable();
                 $table->string('field_name', 80);
                 $table->longText('original_value')->nullable();
                 $table->longText('corrected_value')->nullable();
@@ -168,6 +215,7 @@ class Schema
                 $table->unsignedBigInteger('corrected_by')->nullable();
                 $table->timestamps();
                 $table->index(['observation_id', 'field_name']);
+                $table->index(['project_id', 'field_name'], 'openceo_correction_project_field');
             },
             'openceo_company_snapshots' => function (Blueprint $table): void {
                 $table->id();

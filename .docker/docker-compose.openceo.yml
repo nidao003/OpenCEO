@@ -6,6 +6,8 @@ services:
     image: openceo/leantime:3.9.8-v0.1
     environment:
       OPENCEO_AGENT_URL: http://openceo-agent:8091
+      # OpenCEO defaults to Simplified Chinese. An explicit host .env value wins.
+      LEAN_LANGUAGE: ${LEAN_LANGUAGE:-zh-CN}
 
   openceo-agent:
     image: openceo/openceo-agent:local
