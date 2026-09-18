@@ -1,0 +1,42 @@
+services:
+  leantime:
+    build:
+      context: ..
+      dockerfile: .docker/Dockerfile
+    image: openceo/leantime:local
+    environment:
+      OPENCEO_AGENT_URL: http://openceo-agent:8091
+
+  openceo-agent:
+    image: openceo/openceo-agent:local
+    build:
+      context: ../services/openceo-agent
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ../services/openceo-agent/.env
+    environment:
+      OPENCEO_BASE_URL: http://leantime:8080
+    ports:
+      - "127.0.0.1:8091:8091"
+    networks:
+      - leantime-net
+    depends_on:
+      - leantime
+
+  openceo-wecom:
+    image: openceo/openceo-agent:local
+    build:
+      context: ../services/openceo-agent
+      dockerfile: Dockerfile
+    command: ["python", "-m", "app.wecom_bot"]
+    restart: unless-stopped
+    profiles: ["wecom"]
+    env_file:
+      - ../services/openceo-agent/.env
+    environment:
+      OPENCEO_BASE_URL: http://leantime:8080
+    networks:
+      - leantime-net
+    depends_on:
+      - leantime
