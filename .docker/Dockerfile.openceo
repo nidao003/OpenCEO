@@ -1,0 +1,7 @@
+FROM leantime/leantime:3.9.8
+
+# OpenCEO V0.1 is additive on top of the exact Leantime 3.9.8 base image.
+# Keep the image small by copying only OpenCEO-specific PHP entry points.
+COPY --chown=www-data:www-data app/Domain/OpenCEO /var/www/html/app/Domain/OpenCEO
+COPY --chown=www-data:www-data app/Command/OpenCEOInstall.php /var/www/html/app/Command/OpenCEOInstall.php
+COPY --chown=www-data:www-data app/Command/OpenCEOStatus.php /var/www/html/app/Command/OpenCEOStatus.php

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import logging
 import os
 import tempfile
 from pathlib import Path
@@ -12,7 +11,6 @@ from .wecom import handle_downloaded_file, infer_report_type
 # Lightweight in-process intent state for V0.1. It is deliberately replaceable by
 # Valkey/Redis later without changing the report workflow.
 _pending_report_type: dict[str, str] = {}
-logger = logging.getLogger("openceo.wecom")
 
 
 def _sender(frame: dict[str, Any]) -> tuple[str, str]:
@@ -106,9 +104,8 @@ def build_client():
             warn_text = f"；{len(warnings)} 条数据质量提醒" if warnings else ""
             message = f"解析完成：报告 #{result.get('report_id')}，识别 {len(items)} 条事项{warn_text}。新项目将进入人工确认，不会自动写入正式项目。"
             await client.reply_stream(frame, stream_id, message, True)
-        except Exception:
-            logger.exception("WeCom report ingestion failed")
-            await client.reply_stream(frame, stream_id, "解析失败，请稍后重试或联系管理员查看 OpenCEO 日志。", True)
+        except Exception as exc:
+            await client.reply_stream(frame, stream_id, f"解析失败：{exc}", True)
 
     return client
 

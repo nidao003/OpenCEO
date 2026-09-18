@@ -7,6 +7,7 @@ Primary reused components in Phase 1:
 | Component | Role | Upstream |
 |---|---|---|
 | Leantime | Strategy/project/task/user backbone | `Leantime/leantime` |
+| LangGraph | Agent workflow orchestration | `langchain-ai/langgraph` |
 | python-docx | DOCX parsing | `python-openxml/python-docx` |
 | WeCom AI Bot Python SDK | Enterprise WeChat bot transport | `WecomTeam/wecom-aibot-python-sdk` |
 | LibreOffice | Legacy DOC → DOCX conversion | The Document Foundation |

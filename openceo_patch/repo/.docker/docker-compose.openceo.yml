@@ -2,8 +2,8 @@ services:
   leantime:
     build:
       context: ..
-      dockerfile: .docker/Dockerfile.openceo
-    image: openceo/leantime:3.9.8-v0.1
+      dockerfile: .docker/Dockerfile
+    image: openceo/leantime:local
     environment:
       OPENCEO_AGENT_URL: http://openceo-agent:8091
 

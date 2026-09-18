@@ -56,7 +56,7 @@ class People
         Guard::manager();
         return collect(DB::table('zp_user')
             ->select(['id', 'username', 'firstname', 'lastname', 'department', 'jobTitle', 'status'])
-            ->whereRaw('LOWER(status) = ?', ['a'])
+            ->where('status', 'A')
             ->orderBy('lastname')
             ->orderBy('firstname')
             ->limit(max(1, min($limit, 1000)))

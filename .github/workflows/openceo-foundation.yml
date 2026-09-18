@@ -1,0 +1,41 @@
+name: OpenCEO Foundation
+
+on:
+  pull_request:
+    paths:
+      - 'app/Domain/OpenCEO/**'
+      - 'app/Command/OpenCEO*.php'
+      - 'services/openceo-agent/**'
+      - '.docker/Dockerfile.openceo'
+      - '.docker/docker-compose.openceo.yml'
+      - '.github/workflows/openceo-foundation.yml'
+  push:
+    branches: [develop]
+    paths:
+      - 'app/Domain/OpenCEO/**'
+      - 'app/Command/OpenCEO*.php'
+      - 'services/openceo-agent/**'
+
+jobs:
+  php-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint OpenCEO PHP
+        run: |
+          find app/Domain/OpenCEO app/Command -type f -name '*.php' -print0 \
+            | xargs -0 -n1 php -l
+
+  python-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install OpenCEO agent
+        working-directory: services/openceo-agent
+        run: pip install -e '.[test]'
+      - name: Run tests
+        working-directory: services/openceo-agent
+        run: pytest -q

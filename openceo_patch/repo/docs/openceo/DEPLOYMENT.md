@@ -15,7 +15,7 @@ docker compose \
   up -d --build
 ```
 
-The overlay is important: it builds a small OpenCEO image on top of the official `leantime/leantime:3.9.8` image and copies in only the OpenCEO PHP domain/commands, while adding the Python sidecar on the same `leantime-net` network.
+The overlay is important: it replaces the stock Leantime image with an image built from the OpenCEO working tree, while adding the Python sidecar on the same `leantime-net` network.
 
 ## 3. Install OpenCEO tables
 

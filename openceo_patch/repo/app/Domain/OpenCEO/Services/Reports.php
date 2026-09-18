@@ -21,36 +21,6 @@ class Reports
         string $periodEnd = '',
     ): int {
         Guard::manager();
-
-        // WeCom/WebSocket transports can redeliver the same file. Treat the same
-        // content hash from the same submitter/report type as an idempotent ingest.
-        $existingQuery = DB::table('openceo_reports')
-            ->where('report_type', $reportType)
-            ->where('source_hash', $sourceHash);
-        if ($externalIdentityId > 0) {
-            $existingQuery->where('external_identity_id', $externalIdentityId);
-        } elseif ($userId > 0) {
-            $existingQuery->where('user_id', $userId);
-        }
-        $existing = $sourceHash !== '' ? $existingQuery->orderByDesc('id')->first() : null;
-        if ($existing) {
-            DB::table('openceo_reports')->where('id', $existing->id)->update([
-                'report_batch_key' => $reportBatchKey ?: null,
-                'user_id' => $userId ?: $existing->user_id,
-                'external_identity_id' => $externalIdentityId ?: $existing->external_identity_id,
-                'source_filename' => $sourceFilename,
-                'period_start' => $periodStart ?: null,
-                'period_end' => $periodEnd ?: null,
-                'raw_text' => $rawText,
-                'structured_json' => json_encode($structured, JSON_UNESCAPED_UNICODE),
-                'validation_json' => json_encode($validation, JSON_UNESCAPED_UNICODE),
-                'status' => 'ingested',
-                'updated_at' => now(),
-            ]);
-
-            return (int) $existing->id;
-        }
-
         return (int) DB::table('openceo_reports')->insertGetId([
             'report_type' => $reportType,
             'report_batch_key' => $reportBatchKey ?: null,
